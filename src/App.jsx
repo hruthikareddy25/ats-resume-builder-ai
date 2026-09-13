@@ -8,6 +8,7 @@ import CertificationsForm from './components/CertificationsForm';
 import AtsScoreCard from './components/AtsScoreCard';
 import ResumePreview from './components/ResumePreview';
 import AiWorkspacePage from './components/AiWorkspacePage';
+import AuthModal from './components/AuthModal';
 
 import { defaultResumeData } from './utils/defaultData';
 import { analyzeResume } from './utils/atsAnalyzer';
@@ -15,7 +16,7 @@ import { generatePlainTextResume, generateMarkdownResume, downloadTextFile, copy
 
 import {
   FileText, Sun, Moon, Download, Copy, Printer, RotateCcw,
-  Sparkles, Eye, Edit3, Columns, Check, Brain, Gauge, Layout
+  Sparkles, Eye, Edit3, Columns, Check, Brain, Gauge, Layout, User
 } from 'lucide-react';
 
 export default function App() {
@@ -23,6 +24,12 @@ export default function App() {
     const saved = localStorage.getItem('ats_resume_builder_data');
     return saved ? JSON.parse(saved) : defaultResumeData;
   });
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedUser = localStorage.getItem('ats_resume_user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   const [darkMode, setDarkMode] = useState(true);
   const [previewStyle, setPreviewStyle] = useState('modern'); // 'modern' or 'text'
@@ -44,6 +51,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('ats_resume_builder_data', JSON.stringify(resumeData));
   }, [resumeData]);
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('ats_resume_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('ats_resume_user');
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     if (darkMode) {
@@ -188,6 +203,13 @@ export default function App() {
 
           {/* Quick Action Controls */}
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn-secondary text-xs border-indigo-500/40 text-indigo-300"
+              onClick={() => setIsAuthOpen(true)}
+            >
+              <User size={14} /> {currentUser?.isLoggedIn ? currentUser.name.split(' ')[0] : 'Sign In'}
+            </button>
             <button type="button" className="btn-secondary text-xs" onClick={handleReset} title="Load Software Engineering Sample">
               <RotateCcw size={13} /> Sample Preset
             </button>
@@ -374,6 +396,14 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Auth Modal for Sign In / Profile */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onLogin={(u) => setCurrentUser(u)}
+        currentUser={currentUser}
+      />
     </div>
   );
 }
